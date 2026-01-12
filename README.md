@@ -1,42 +1,62 @@
-- Data Warehouse Schema
-The Data Warehouse follows the STAR Scheme and consist of 
-1 Fact Table (facts_transaction)
-3 Dimension Table(dim_agents, dim_transaction, dim_transaction_event)
+# Transaction Data Warehouse & ETL Pipeline
 
-facts_transaction consists of:
-- id Integer
-- agent_id Integer
-- product_id Integer
-- total_premi FLOAT
+Data pipeline that extract raw transaction data, clean, transform, and load into PostgreSQL star schema for effiecient analytical querying.
 
-dim_agents consist of:
-- agent_id INT and the PRIMARY KEY
-- tier_id INT
-- join_date DATE
-- one to many relationship with facts_transaction
+Build with:
+- Python (pandas + psycopg2)
+- PostgreSQL
 
-dim_transcation consist of:
-- transaction_id INT and the PRIMARY KEY
-- payment_status VARCHAR
-- registration_date DATE
-- registration_month INTEGER
-- one to many relationship with facts_transaction
+## Project Overview
 
-dim_transaction event consist of:
-- transaction_event_id INTEGER and the PRIMARY KEY
-- transaction_id FOREIGN KEY 
-- status VARCHAR
-- created_at DATE
-- One to many relationship with dim_transaction
+This project implement a complete ETL Pipeline for transaction data following best practices in data warehousing:
 
+- Star Schema modeling (2 facts + 3 dimensions)
+- Data cleaning, deduplication, and feature engineering
+- Seperation of phase: extract -> transform -> load
+
+## Data Model
+
+2 Facts table surrounded by dimensions for agent, time, transaction status.
+
+### 
+
+- `facts_transaction`
+  - `id` (PK)
+  - `agent_id` → FK to dim_agent
+  - `product_id`
+  - `status_id` → FK to dim_transaction_status
+  - `registration_date` → FK to dim_date
+  - `total_premi` (price for transaction)
+
+- `facts_transaction_event`
+  - `id` (PK)
+  - `transaction_id` → FK to facts_transaction
+  - `status_id` → FK to dim_transaction_status
+  - `created_at` → FK to dim_date 
+
+### Dimension Tables
+| Table                     | Description                              | Key Fields                                      |
+|---------------------------|------------------------------------------|-------------------------------------------------|
+| `dim_date`                | Date dimension (time intelligence)       | full_date_timestamp, year, quarter, month, day  |
+| `dim_agent`               | Agent/Customer                           | agent_id (PK), tier_id, join_date               |
+| `dim_transaction_status`  | Transaction/payment status               | id (PK), status_name                            |
 
 
 - Data Pipeline Step
-The following project consist several steps of data pipeline. These steps are:
-Extract: Seperating each worksheet into individual dataframe
-Transformation: Transformation of the data such as cleaning by handling missing value, duplicate, and errors as well as adding new features (Registration Month)
-Loading: Creating the database and table through python script and insert the clean data into the fact and dimension tables.
 
+1. **Extract**  
+   Read source Excel/CSV worksheets → separate into raw DataFrames
 
-- Running The Project
-This project use python for the ETL pipeline and Postgresql for the database. To run the project, create an empty database beforehand then run each code in the cell.
+2. **Transform**
+    - Handle missing value and duplicate
+    - Create derived column (registration_date)
+    - Create facts and dimensions dataframe
+
+3. **Load**
+    - Create schema/tables following Star Schema
+    - Insert data into facts and dimension table
+
+**Tech stack**
+- Python 3.10+  
+- pandas, psycopg2
+- PostgreSQL 15+
