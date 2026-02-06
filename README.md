@@ -1,4 +1,4 @@
-# Transaction Data Warehouse & ETL Pipeline
+# ETL Pipeline for Transactional Data
 
 Data pipeline that extract raw transaction data, clean, transform, and load into PostgreSQL star schema for effiecient analytical querying.
 
